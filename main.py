@@ -5,7 +5,7 @@ from progress.bar import Bar
 
 
 class VkDownloader:
-    def __init__(self, owner_id):
+    def __init__(self, owner_id, count_foto='5'):
         with open('token.txt', 'r') as file_object:
             self.token = file_object.read().strip()
         URL = 'https://api.vk.com/method/photos.get'
@@ -13,6 +13,7 @@ class VkDownloader:
             'owner_id' : owner_id,
             'album_id' : 'profile',
             'extended' : '1',
+            'count' : count_foto,
             'access_token': self.token,
             'v':'5.131'
         }
@@ -43,6 +44,10 @@ class VkDownloader:
     def token_ya_method(self, token_ya):
         with open(token_ya, 'r') as file_object:
             self.token_y = file_object.read().strip()
+        url_path = 'https://cloud-api.yandex.net/v1/disk/resources'
+        headers_path = {'Content-Type': 'application/json', 'Authorization': 'OAuth ' + self.token_y}
+        params_path = {'url': url_path, "path": f'new_foto'}
+        response_path = requests.put(url_path, params=params_path, headers=headers_path)
         url = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
         headers = {'Content-Type': 'application/json', 'Authorization': 'OAuth ' + self.token_y}
         with Bar('Processing', max=len(self.foto)) as bar:
@@ -52,14 +57,16 @@ class VkDownloader:
                 bar.next()
             bar.finish()
         with open("data_file.json", "w") as write_file:
+            data_list = []
             for d, z in zip(self.likes, self.sizes2):
-                data = [{"file_name": d, "size": z}]
-                json.dump(data, write_file)
+                data = {"file_name": d, "size": z}
+                data_list.append(data)
+            json.dump(data_list, write_file)
         return print(f'\nФайлы скачены')
 
 
 if __name__ == '__main__':
-    downloader = VkDownloader('552934290')
+    downloader = VkDownloader('552934290', '3')
     uploader = downloader.token_ya_method('token_ya.txt')
 
 
